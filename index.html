@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Simulatore Linea</title>
+    <base href="./" />
+    <link rel="stylesheet" href="app.css" />
+    <script type="importmap">{
+  "imports": {
+    "./fw/blazor.webassembly.js": "./fw/blazor.webassembly.w3qd1tpl0e.js",
+    "./fw/dotnet.native.js": "./fw/dotnet.native.bcbgry4f1o.js",
+    "./fw/dotnet.runtime.js": "./fw/dotnet.runtime.v2rwe8u38b.js",
+    "./fw/dotnet.js": "./fw/dotnet.sk41o0pa5m.js"
+  },
+  "scopes": {}
+}</script>
+</head>
+<body>
+    <div id="app">
+        <div class="avvio">
+            <h1>Simulatore Linea</h1>
+            <p id="avvio-testo">Caricamento del simulatore…</p>
+            <div class="barra"><div class="barra-dentro"></div></div>
+        </div>
+    </div>
+    <div id="errore-avvio" hidden></div>
+    <script>
+        // Tema: "auto" segue il sistema; la scelta resta nel browser, se il browser lo permette.
+        window.tema = {
+            leggi: function () { try { return localStorage.getItem('tema') || 'auto'; } catch (e) { return 'auto'; } },
+            imposta: function (v) {
+                if (v === 'auto') document.documentElement.removeAttribute('data-tema');
+                else document.documentElement.setAttribute('data-tema', v);
+                try { localStorage.setItem('tema', v); } catch (e) { }
+            }
+        };
+        window.tema.imposta(window.tema.leggi());
+        // Zone comprimibili: apre la zona e scorre fin lì; comprime / espande tutto
+        window.zone = {
+            vai: function (id) {
+                var z = document.getElementById(id);
+                if (!z) return;
+                if (z.tagName === 'DETAILS') z.open = true;
+                z.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            },
+            tutte: function (aperte) {
+                document.querySelectorAll('details.zona').forEach(function (d) { d.open = aperte; });
+            }
+        };
+        // Progetto modificato: copia negli appunti (i download sono bloccati nella pagina su claude.ai)
+        window.salva = {
+            copia: async function (testo) {
+                try { await navigator.clipboard.writeText(testo); return true; } catch (e) { return false; }
+            },
+            seleziona: function (id) { var t = document.getElementById(id); if (t) { t.focus(); t.select(); } },
+            // scarica un file (PDF, Excel, Word, zip, json) generato nella pagina
+            file: function (nome, base64, tipo) {
+                var bin = atob(base64), n = bin.length, b = new Uint8Array(n);
+                for (var i = 0; i < n; i++) b[i] = bin.charCodeAt(i);
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(new Blob([b], { type: tipo }));
+                a.download = nome;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+            }
+        };
+        // Se il simulatore non parte, lo scrive sulla pagina (sul telefono non c'è la console).
+        function erroreAvvio(m) {
+            var e = document.getElementById('errore-avvio');
+            e.hidden = false;
+            e.textContent = 'Il simulatore non è partito: ' + m;
+        }
+        window.addEventListener('error', function (ev) { erroreAvvio(ev.message || 'errore di caricamento'); });
+        window.addEventListener('unhandledrejection', function (ev) { erroreAvvio((ev.reason && ev.reason.message) || String(ev.reason)); });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="scene3d.js"></script>
+    <script src="pacco3d.js"></script>
+    <script src="configvista.js"></script>
+    <script src="fw/blazor.webassembly.w3qd1tpl0e.js"></script>
+</body>
+</html>
